@@ -1,0 +1,30 @@
+name: 'BridgedAI Deployment Guard'
+description: 'Prevent deployment of an unapproved artifact by comparing digests.'
+branding:
+  icon: 'shield'
+  color: 'orange'
+inputs:
+  deployed-artifact:
+    description: 'Deployed artifact reference (should include @sha256:…).'
+    required: true
+  approved-artifact-digest:
+    description: 'Approved digest (sha256:… or raw 64-hex).'
+    required: true
+  environment:
+    description: 'Deployment environment label (informational).'
+    required: false
+    default: ''
+  mode:
+    description: 'observe | warn | enforce'
+    required: false
+    default: 'enforce'
+outputs:
+  deployed-digest:
+    description: 'Normalized digest parsed from deployed-artifact.'
+  approved-digest:
+    description: 'Normalized approved digest.'
+  match:
+    description: 'true | false'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

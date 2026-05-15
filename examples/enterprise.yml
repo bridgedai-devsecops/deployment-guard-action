@@ -1,0 +1,19 @@
+name: example-deployment-guard-enterprise
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    environment: bridgedai-demo
+    steps:
+      - uses: bridgedai-devsecops/deployment-guard-action@v1.0.0
+        with:
+          deployed-artifact: ghcr.io/example/demo@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          approved-artifact-digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          environment: production
+          mode: enforce
+
