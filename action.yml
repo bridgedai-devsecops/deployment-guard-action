@@ -1,30 +1,95 @@
 name: 'BridgedAI Deployment Guard'
-description: 'Prevent deployment of an unapproved artifact by comparing digests.'
+description: 'Evaluate deployment readiness via POST /v1/enforcement/release-gate/evaluate on api.bridgedai.io (optional digest pre-check).'
+author: 'BridgedAI'
 branding:
   icon: 'shield'
   color: 'orange'
 inputs:
-  deployed-artifact:
-    description: 'Deployed artifact reference (should include @sha256:…).'
-    required: true
-  approved-artifact-digest:
-    description: 'Approved digest (sha256:… or raw 64-hex).'
-    required: true
-  environment:
-    description: 'Deployment environment label (informational).'
+  api-url:
+    description: 'BridgedAI API base URL. Defaults to https://api.bridgedai.io when omitted.'
     required: false
-    default: ''
-  mode:
-    description: 'observe | warn | enforce'
+    default: 'https://api.bridgedai.io'
+  access-token:
+    description: 'BridgedAI access token from auth-action (required when integration=production).'
+    required: false
+  tenant:
+    description: 'BridgedAI organization id (orgId) for release gate evaluate.'
+    required: false
+  org-id:
+    description: 'Optional org id override; when omitted, tenant is used as orgId.'
+    required: false
+  environment:
+    description: 'Deployment environment label passed to the release gate (required).'
+    required: true
+  integration:
+    description: 'production (API), mock (tests), or digest-only (local digest compare only, no API).'
+    required: false
+    default: 'production'
+  gate-mode:
+    description: 'observe | warn | enforce — how to treat API (or digest-only) outcomes.'
     required: false
     default: 'enforce'
+  deployed-artifact:
+    description: 'Optional deployed artifact reference (@sha256:…) for digest pre-check.'
+    required: false
+    default: ''
+  approved-artifact-digest:
+    description: 'Optional approved digest for digest pre-check or digest-only integration.'
+    required: false
+    default: ''
+  artifact-digest:
+    description: 'Artifact digest (sha256:…) sent to release gate evaluate.'
+    required: false
+    default: ''
+  policy-id:
+    description: 'Optional policy id for release gate evaluate.'
+    required: false
+    default: ''
+  build-id:
+    description: 'Optional Bridged build id.'
+    required: false
+    default: ''
+  repo-full-name:
+    description: 'Repository full name (default GITHUB_REPOSITORY).'
+    required: false
+    default: ''
+  workflow-run-id:
+    description: 'GitHub workflow run id (default GITHUB_RUN_ID).'
+    required: false
+    default: ''
+  commit-sha:
+    description: 'Commit SHA (default GITHUB_SHA).'
+    required: false
+    default: ''
+  branch:
+    description: 'Branch (default GITHUB_REF_NAME).'
+    required: false
+    default: ''
+  project-id:
+    description: 'Optional Bridged project id.'
+    required: false
+    default: ''
+  artifact-id:
+    description: 'Optional Bridged artifact id.'
+    required: false
+    default: ''
+  fail-on-warn:
+    description: 'When gate-mode=enforce, treat WARN as failure.'
+    required: false
+    default: 'false'
 outputs:
+  decision:
+    description: 'ALLOW | WARN | BLOCK from release gate (or digest-only).'
+  reasons-json:
+    description: 'JSON array of reasons from the API.'
+  findings-json:
+    description: 'JSON array of findings from the API.'
   deployed-digest:
-    description: 'Normalized digest parsed from deployed-artifact.'
+    description: 'Normalized digest from deployed-artifact when provided.'
   approved-digest:
-    description: 'Normalized approved digest.'
+    description: 'Normalized approved digest when provided.'
   match:
-    description: 'true | false'
+    description: 'true | false when digest pre-check ran.'
 runs:
   using: 'node20'
   main: 'dist/index.js'

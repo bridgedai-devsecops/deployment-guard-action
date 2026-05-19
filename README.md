@@ -2,25 +2,47 @@
 
 ## What this action does
 
-Compares a deployed artifact digest to an approved digest and supports `observe`, `warn`, and `enforce` modes.
+In **`integration: production`** (default), calls the public BridgedAI API:
 
-## Why BridgedAI exists
+**`POST /v1/enforcement/release-gate/evaluate`** on **`https://api.bridgedai.io`**
 
-Prevent deploying artifacts that have not passed your trust and policy bar.
+with your deployment **`environment`** and optional build/repo context. Use an **`access-token`** from `auth-action`.
 
-## Quick start
+Optionally compares **`deployed-artifact`** to **`approved-artifact-digest`** before the API call (digest pre-check).
 
-See `examples/basic.yml`.
+## Integration modes
 
-## Enterprise setup
+| `integration` | Behavior |
+| --- | --- |
+| `production` | Release gate API + optional digest pre-check |
+| `mock` | Deterministic allow (tests/demos only) |
+| `digest-only` | Local digest compare only — **no** BridgedAI API (legacy/portable demos) |
 
-Always pin deployed artifacts with `@sha256:` references where possible.
+## Quick start (production)
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+
+steps:
+  - uses: bridgedai-devsecops/auth-action@v1.0.0
+    id: auth
+    with:
+      tenant: ${{ vars.BRIDGEDAI_TENANT }}
+      audience: ${{ vars.BRIDGEDAI_OIDC_AUDIENCE }}
+
+  - uses: bridgedai-devsecops/deployment-guard-action@v1.0.0
+    with:
+      access-token: ${{ steps.auth.outputs.access-token }}
+      tenant: ${{ vars.BRIDGEDAI_TENANT }}
+      environment: production
+      artifact-digest: sha256:…
+      policy-id: my-deployment-policy
+```
+
+See `examples/basic.yml` for digest-only demos without OIDC.
 
 ## Inputs / outputs
 
 See `action.yml`.
-
-## Support
-
-Use your BridgedAI support channel.
-
